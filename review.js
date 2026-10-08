@@ -12,7 +12,7 @@
   const addD = (d, n) => { const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10) };
   const DAYS = [1, 3, 7, 14, 30];
   /* nền tảng: đếm, tên và hộp, nếu-thì, lặp, thứ tự câu lệnh, biến, điều kiện, vòng lặp, hàm/return, chỉ số, cộng dồn */
-  const FOUND = ["k1", "k4", "k6", "k7", "bx0", "p1", "p2", "p3", "p4", "a2", "a3", "sm"];
+  const FOUND = ["k1", "k3", "k4", "k6", "k7", "bx0", "p1", "p2", "p3", "p4", "a2", "a3", "sm"];
   const SH = { same: "đổi số", flip: "đi ngược chiều", new: "bối cảnh mới", verdict: "tự phán đúng/sai", read: "đọc kỹ đề" };
   const HAB = { careless: "Cẩu thả (sai trong chưa đầy 4 giây)", misread: "Đọc sai đề", overconfident: "Chắc chắn mà vẫn sai" };
   const FIX = {
@@ -33,6 +33,19 @@
   const nextDue = () => eligible().map(id => ({ id, d: item(id).due })).sort((a, b) => a.d.localeCompare(b.d))[0];
   const foundDone = () => FOUND.filter(i => P.done[i] && PRB[i] && LES[i]);
   const hcDue = () => { if (foundDone().length < 3) return false; const l = HC().last; return !l || addD(l, 7) <= TD() };
+
+  /* Vòng recovery sau "Chưa nhớ": giở sổ tay -> tiny check -> MỘT câu hỏi mới (không tính điểm).
+     Chỉ là bằng chứng formative: không gọi rec(), không chạm hộp Leitner. */
+  function retestOne(id, back) {
+    const p = pane(), sh = pickShape(id);
+    probe(id, 0, { shapes: [sh], noRec: true, title: "Ôn lại sau khi đọc", tag: `Một câu mới về ${T(id)} (dạng: ${SH[sh]}). Không tính điểm — chỉ để chắc là bạn đã lấy lại được.`, onEnd: (ok, info) => {
+      const fl = (info && info.flags && info.flags[sh]) || "";
+      p.innerHTML = `<h2>Ôn lại: ${ok ? "đúng ✓" : "chưa đúng"}</h2><div class="${ok ? "fb ok" : "fb"}">${ok ? "Tốt. Bạn đã tự lấy lại được kiến thức mà không cần nhìn sách." : (fl === "unknown" ? "Bạn vẫn chưa nhớ ra. Hãy giở lại sổ tay một lần nữa, đọc chậm hơn." : "Vẫn chưa chắc. Nên học lại bài này từ đầu.")}</div><p>${!ok && fl !== "unknown" ? `<button class="go" data-st="${id}">Học lại ${T(id)}</button> ` : ""}<button class="ghost" id="rtb">Về buổi ôn</button></p>`;
+      const stb = p.querySelector("[data-st]"); if (stb) stb.onclick = () => start(stb.dataset.st);
+      $("#rtb").onclick = back;
+    } });
+  }
+  const recover = (nb, back) => notebook(nb, () => tinyCheck(tinyFor(nb), nb, () => retestOne(nb, back)), "Đã đọc, kiểm tra nhanh");
 
   function pickShape(id, allow) {
     const ms = (P.pr[id] && P.pr[id].miss) || {}, it = item(id);
@@ -84,7 +97,7 @@
       p.innerHTML = `<h2>Ôn cách quãng: xong</h2><ul style="padding-left:4px">${out.map(r => `<li style="list-style:none">${line(r)}</li>`).join("")}</ul>${all.length > L.length ? `<p class="sub">Còn ${all.length - L.length} bài đến hạn, để buổi sau.</p>` : ""}` +
         out.filter(r => r.res === "unknown").map(r => `<p><button class="ghost" data-nb="${r.id}">📖 Giở sổ tay ${T(r.id)}</button></p>`).join("") + sk.map(r => `<p><button class="ghost" data-pf="${r.id}">Chứng minh lại ${T(r.id)} (kiểm tra hiểu thật)</button></p>`).join("") +
         rc.map(r => `<p><button class="ghost" data-rc="${r.id}">Sai liên tiếp ở ${T(r.id)}: kiểm tra xem nền có hổng không</button></p>`).join("") + `<p><button class="go" id="rvx">Tiếp tục</button></p>`;
-      p.querySelectorAll("[data-nb]").forEach(b => b.onclick = () => notebook(b.dataset.nb, () => reviewSpaced(), "Về buổi ôn"));
+      p.querySelectorAll("[data-nb]").forEach(b => b.onclick = () => recover(b.dataset.nb, () => reviewSpaced()));
       p.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => probe(b.dataset.pf, 1));
       p.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => rootcheck(b.dataset.rc));
       $("#rvx").onclick = () => draw();
@@ -115,7 +128,7 @@
       p.innerHTML = `<h2>Kiểm tra nền tảng: kết quả</h2><ul style="padding-left:4px">${out.map(r => `<li style="list-style:none">${{ ok: "✓", lucky: "~", unknown: "?", shaky: "✗", withdrawn: "✗✗" }[r.res]} ${T(r.id)}: ${msg[r.res]}</li>`).join("")}</ul>${bad.length || unk.length ? "" : `<div class="fb ok">Nền tảng đang vững. Kiểm tra lại sau khoảng 7 ngày.</div>`}` + unk.map(r => `<p><button class="ghost" data-nb="${r.id}">📖 Giở sổ tay ${T(r.id)}</button></p>`).join("") +
         bad.map(r => r.res == "withdrawn" ? `<p><button class="go" data-st="${r.id}">Học lại ${T(r.id)}</button></p>` : `<p><button class="ghost" data-pf="${r.id}">Chứng minh lại ${T(r.id)}</button>${testable(r.id).length ? ` <button class="ghost" data-rc="${r.id}">Kiểm tra bài nền của nó</button>` : ""}</p>`).join("") + `<p><button class="go" id="hcx">Tiếp tục</button></p>`;
       p.querySelectorAll("[data-st]").forEach(b => b.onclick = () => start(b.dataset.st));
-      p.querySelectorAll("[data-nb]").forEach(b => b.onclick = () => notebook(b.dataset.nb, () => healthCheck(), "Về kiểm tra nền tảng"));
+      p.querySelectorAll("[data-nb]").forEach(b => b.onclick = () => recover(b.dataset.nb, () => healthCheck()));
       p.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => probe(b.dataset.pf, 1));
       p.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => rootcheck(b.dataset.rc));
       $("#hcx").onclick = () => draw();
@@ -151,6 +164,10 @@
     const miss = {}; Object.values(P.pr || {}).forEach(r => Object.entries(r.miss || {}).forEach(([s, c]) => miss[s] = (miss[s] || 0) + c));
     const ms = Object.entries(miss).filter(x => SH[x[0]]).sort((a, b) => b[1] - a[1]), hb = Object.entries(P.hab || {}).filter(x => HAB[x[0]]).sort((a, b) => b[1] - a[1]);
     const unk = Object.keys(P.pr || {}).filter(i => LES[i] && P.pr[i].unk).map(i => [i, P.pr[i].unk]).sort((a, b) => b[1] - a[1]).slice(0, 5), asst = Object.values(P.pr || {}).reduce((t, r) => t + (r.asst || 0), 0);
+    const lucky = Object.values(P.pr || {}).reduce((t, r) => t + (r.lucky || 0), 0);
+    const FKL = { de: "không hiểu đề", concept: "không hiểu khái niệm", start: "không biết bắt đầu", python: "không biết viết Python", theory: "không hiểu lý thuyết", unsure: "không chắc đáp án" };
+    const fkm = {}; Object.values(P.pr || {}).forEach(r => Object.entries(r.fk || {}).forEach(([k, c]) => fkm[k] = (fkm[k] || 0) + c));
+    const fks = Object.entries(fkm).filter(x => FKL[x[0]]).sort((a, b) => b[1] - a[1]);
     const bx = [1, 2, 3, 4, 5].map(b => eligible().filter(i => item(i).box == b).length), due = dueList().length;
     const next = shaky.length ? `Chứng minh lại các bài ⚠ (${shaky.slice(0, 3).map(T).join(", ")}) bằng nút «Kiểm tra hiểu thật» trong bài.` : due ? `Có ${due} bài đến hạn: bấm «Ôn cách quãng».` : hcDue() ? "Đến hạn kiểm tra nền tảng: bấm «Kiểm tra nền tảng»." : unst.length ? `Có ${unst.length} bài mới qua một ngày: quay lại vào ngày khác để chứng minh vững.` : "Học tiếp bài kế trên lộ trình.";
     p.innerHTML = `<h2>Hồ sơ học</h2><p class="sub">Không đếm bài đã làm. Đếm điều bạn thật sự chứng minh được.</p>` +
@@ -159,7 +176,8 @@
       `<p><b>Nền tảng yếu (số lần phải học lại):</b> ${weak.length ? weak.map(([i, n]) => `${T(i)} (${n})`).join("; ") : "chưa có."}</p>` +
       `<p><b>Dạng câu hay sai nhất:</b> ${ms.length ? ms.slice(0, 3).map(([s, c]) => `${SH[s]} (${c})`).join("; ") : "chưa có dữ liệu."}</p>` +
       `<p><b>Thói quen cần sửa:</b> ${hb.length ? hb.map(([s, c]) => `${HAB[s]} (${c})`).join("; ") : "chưa phát hiện."}</p>` +
-      `<p><b>Bài hay phải giở sổ tay (bạn nói thật là chưa hiểu, rất tốt):</b> ${unk.length ? unk.map(([i, n]) => `${T(i)} (${n} lần)`).join("; ") : "chưa có."}${asst ? ` Số lần qua kiểm tra nhờ sổ tay: ${asst}.` : ""}</p>` +
+      `<p><b>Bài hay phải giở sổ tay (bạn nói thật là chưa hiểu, rất tốt):</b> ${unk.length ? unk.map(([i, n]) => `${T(i)} (${n} lần)`).join("; ") : "chưa có."}${asst ? ` Số lần qua kiểm tra nhờ sổ tay: ${asst}.` : ""}${lucky ? ` Số lần đoán đúng (không tính vào hiểu): ${lucky}.` : ""}</p>` +
+      (fks.length ? `<p><b>Chỗ hay vướng khi bấm «Chưa hiểu»:</b> ${fks.map(([k, c]) => `${FKL[k]} (${c})`).join("; ")}.</p>` : "") +
       `<p><b>Hộp ôn cách quãng</b> (1 đến 5): ${bx.join(" / ")}. Đến hạn hôm nay: ${due}. Kiểm tra nền tảng: ${HC().last ? "lần cuối " + HC().last : "chưa làm lần nào"}.</p>` +
       `<div class="fb ok"><b>Bước tiếp theo:</b> ${next}</div><p class="sub">Dữ liệu chỉ gồm điều app đo được: đúng/sai, độ chắc chắn, thời gian trả lời, dạng câu. App chưa đo số gợi ý đã dùng khi làm bài code.</p>`;
   }

@@ -36,6 +36,9 @@ const PRB = {
 /* Đồ thị tiền đề: bài nào dựa trên bài nào. Sai ở bài lớn thì lần ngược về gốc (như lớp 9 sai phép cộng thì phải học lại phép cộng). */
 const PREQ = { l2: ["l1"], l3: ["l1", "l2"], w1: ["l3"], w2: ["l2"], w3: ["l3"] };
 const anc = id => { const o = []; const v = x => (PREQ[x] || []).forEach(y => { v(y); if (!o.includes(y)) o.push(y) }); v(id); return o };
+const tmr = () => { const d = new Date(Date.now() + 864e5); return d.toISOString().slice(0, 10) };
+/* bài Python cơ bản gần nhất trong chuỗi tiền đề: dùng khi người học "hiểu ý nhưng không biết viết Python" */
+const pyRef = id => { const py = ["b1", "b2", "b3", "b4"]; const a = anc(id).filter(x => py.includes(x) && LES[x]); return a.length ? a[a.length - 1] : id };
 const deps = id => Object.keys(LES).filter(x => anc(x).includes(id));
 const testable = id => anc(id).filter(y => PRB[y] && P.done[y]);
 function rootcheck(id) {
@@ -55,16 +58,17 @@ function rootcheck(id) {
 
 function probe(id, fromHub, opt) {
   const L = LES[id], G = PRB[id], p = $("#panel"), shapes = (opt && opt.shapes) || ["same", "flip", "new", "verdict", "read"];
-  let i = 0, res = {}, flags = {}, conf = 0, extra = false, solo = false, assisted = {}, list = shapes.slice();
+  let i = 0, res = {}, flags = {}, conf = 0, extra = false, solo = false, viaAssist = false, assisted = {}, list = shapes.slice();
   p.className = "panel";
   const opts = (arr, cb) => { const o = pShuf(arr.map((t, j) => ({ t, c: j }))); $("#in").innerHTML = `<div class="opts">${o.map((x, j) => `<button data-o="${j}">${x.t}</button>`).join("")}</div>`; $("#in").querySelectorAll("button").forEach(b => b.onclick = () => cb(o[+b.dataset.o].c)) };
-  const rec = ok => { const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); ok ? r.p++ : r.f++; if (!ok) shapes.filter(s => !res[s]).forEach(s => r.miss[s] = (r.miss[s] || 0) + 1); r.last = today(); r.days = r.days || []; if (ok && !r.days.includes(r.last)) r.days.push(r.last); save() };
+  const rec = (ok, weakEv) => { const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); ok ? r.p++ : r.f++; if (!ok) shapes.filter(s => !res[s]).forEach(s => r.miss[s] = (r.miss[s] || 0) + 1); r.last = today(); r.days = r.days || []; if (ok && !weakEv && !r.days.includes(r.last)) r.days.push(r.last); save() };
   const ask = re => {
     if (i >= list.length) return end();
     const s = list[i], q = re || G[s](); let t0 = Date.now(); conf = 0;
+    const canBook = !opt && !solo; // vòng solo retest / chế độ ôn: không giở sổ tay giữa câu hỏi
     p.innerHTML = `<h2>${opt ? opt.title : "Kiểm tra hiểu thật"}: ${L.t}</h2><p class="sub">${extra ? "Câu thêm để chắc chắn" : (opt && opt.tag) || `Câu ${i + 1}/${list.length}`}. Làm đúng bài vừa học chưa chắc là hiểu, nên mình đổi số, đổi chiều, đổi bối cảnh. Không có gợi ý từng bước, nhưng bạn luôn được giở sổ tay khi chưa hiểu.</p><div class="q">${q.q}</div><div id="in"></div><div id="fb"></div>`;
     const nxt = (ok0, msg) => { let ok = ok0, tag = "";
-      if (ok0 && conf == 1) { ok = false; flags[s] = "lucky"; tag = " Đúng, nhưng bạn chọn «Đoán» nên câu này không được tính: đúng nhờ may mắn thì chưa phải hiểu." }
+      if (ok0 && conf == 1) { ok = false; flags[s] = "lucky"; const rl = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); rl.lucky = (rl.lucky || 0) + 1; save(); tag = " Đúng, nhưng bạn chọn «Đoán» nên câu này không được tính: đúng nhờ may mắn thì chưa phải hiểu." }
       else if (ok0 && assisted[s]) { ok = true; flags[s] = "assisted"; tag = " Bạn đã giở sổ tay: đó là cách học đúng. Câu này sẽ được hỏi lại bằng đề MỚI, không có sổ tay, để chắc là bạn tự làm được." }
       else if (!ok0) { flags[s] = s == "read" ? "misread" : assisted[s] ? "" : conf == 3 ? "overconfident" : (Date.now() - t0 < 4000 ? "careless" : ""); tag = { misread: " Đây là lỗi ĐỌC SAI ĐỀ: thói quen này phải sửa từ gốc.", overconfident: " Bạn chọn «Chắc chắn» mà vẫn sai: đây là hiểu lầm sâu, đáng chú ý nhất.", careless: " Bạn trả lời trong chưa đầy 4 giây và sai: dấu hiệu CẨU THẢ hoặc đoán." }[flags[s]] || "" }
       res[s] = ok; msg += tag; $("#in").innerHTML = ""; fb((ok0 ? "Đúng. " : "Chưa đúng. ") + msg, ok); $("#fb").insertAdjacentHTML("beforeend", `<p><button class="go" id="nx2">Tiếp</button></p>`); $("#nx2").onclick = () => { i++; ask() } };
@@ -72,22 +76,29 @@ function probe(id, fromHub, opt) {
     if (q.o) opts(q.o, c => { if (q.o[c] === q.o[q.a]) c = q.a; if (c != q.a) return nxt(false, q.w); if (!q.why) return nxt(true, q.w); $("#fb").innerHTML = ""; $(".q").insertAdjacentHTML("afterend", `<div class="q" id="wq">${q.why.q}</div>`); opts(q.why.o, c2 => { $("#wq").remove(); nxt(c2 == q.why.a, q.w + " " + q.why.o[q.why.a] + ".") }) });
     else { $("#in").innerHTML = `<input id="v" type="number" aria-label="Câu trả lời"> <button class="go" id="ok">Kiểm tra</button>`; const go = () => { const v = $("#v").value; if (v === "") return; nxt(+v === q.a, q.w) }; $("#ok").onclick = go; $("#v").onkeydown = e => { if (e.key == "Enter") go() }; $("#v").focus() }
     };
-    $("#in").innerHTML = `<p class="sub">Trước khi trả lời: bạn chắc đến mức nào?</p><div class="opts"><button data-c="3">Chắc chắn</button><button data-c="2">Hơi chắc</button><button data-c="1">Đoán</button><button data-c="0" class="ghost">Chưa hiểu / chưa nhớ</button></div><p class="sub">Không hiểu thì đừng điền bừa. Bấm «Chưa hiểu / chưa nhớ»: nói thật không bị tính là sai.</p>${opt ? "" : `<p><button class="ghost" id="nbk">📖 Giở sổ tay xem lại lý thuyết</button></p>`}`;
-    const lookup = () => { assisted[s] = true; const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); r.unk = (r.unk || 0) + 1; save(); notebook(id, () => ask(q), "Đã đọc, quay lại câu hỏi") };
+    $("#in").innerHTML = `<p class="sub">Trước khi trả lời: bạn chắc đến mức nào?</p><div class="opts"><button data-c="3">Chắc chắn</button><button data-c="2">Hơi chắc</button><button data-c="1">Đoán</button><button data-c="0" class="ghost">Chưa hiểu / chưa nhớ</button></div><p class="sub">Không hiểu thì đừng điền bừa. Bấm «Chưa hiểu / chưa nhớ»: nói thật không bị tính là sai.</p>${canBook ? `<p><button class="ghost" id="nbk">📖 Giở sổ tay xem lại lý thuyết</button></p>` : ""}`;
+    const lookupRef = (refId, fk) => { assisted[s] = true; const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); r.unk = (r.unk || 0) + 1; if (fk) { r.fk = r.fk || {}; r.fk[fk] = (r.fk[fk] || 0) + 1 } save(); notebook(refId, () => tinyCheck(tinyFor(id, fk), id, () => ask(q)), "Đã đọc, kiểm tra nhanh") };
+    const lookup = () => lookupRef(id, null);
+    const failKind = () => { // "Chưa hiểu" là learning signal: hỏi rõ vướng ở đâu rồi mở đúng reference
+      const kinds = [["de", "Tôi không hiểu đề đang hỏi gì", "rd1"], ["concept", "Tôi không hiểu từ / khái niệm trong đề", id], ["start", "Tôi hiểu đề nhưng không biết bắt đầu từ đâu", id], ["python", "Tôi hiểu ý nhưng không biết viết Python", pyRef(id)], ["theory", "Tôi không hiểu lý thuyết phía sau", id], ["unsure", "Tôi chỉ không chắc đáp án", null]];
+      p.innerHTML = `<h2>${L.t}</h2><p class="sub">Bạn đang vướng ở đâu? Nói đúng chỗ thì mình mở đúng trang sách — không cần đoán mò.</p><div class="opts">${kinds.map((k, j) => `<button data-fk="${j}">${k[1]}</button>`).join("")}</div><p><button class="ghost" id="fkb">Quay lại</button></p>`;
+      p.querySelectorAll("[data-fk]").forEach(b => b.onclick = () => { const k = kinds[+b.dataset.fk]; if (!k[2]) return ask(); lookupRef(k[2], k[0]) });
+      $("#fkb").onclick = () => ask();
+    };
     $("#in").querySelectorAll("[data-c]").forEach(b => b.onclick = () => {
-      if (+b.dataset.c == 0) { if (!opt) return lookup(); flags[s] = "unknown"; res[s] = false; const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); r.unk = (r.unk || 0) + 1; save(); i++; return ask() }
+      if (+b.dataset.c == 0) { if (!canBook) { flags[s] = "unknown"; res[s] = false; const r = P.pr[id] || (P.pr[id] = { p: 0, f: 0, miss: {} }); r.unk = (r.unk || 0) + 1; save(); i++; return ask() } return failKind() }
       conf = +b.dataset.c; show() });
     if ($("#nbk")) $("#nbk").onclick = lookup
   };
   const end = () => {
-    const bad = shapes.filter(s => !res[s]), hab = bad.map(s => flags[s]).filter(h => h && h != "lucky");
-    if (opt) { if (!bad.length || bad.some(s => flags[s] != "unknown")) rec(!bad.length); return opt.onEnd(!bad.length, { flags, bad, shapes: shapes.slice() }) }
-    if (!extra && bad.length == 1 && !hab.length) { extra = true; list = [bad[0]]; i = 0; return ask() }
+    const bad = shapes.filter(s => !res[s]), hab = bad.map(s => flags[s]).filter(h => h && h != "lucky" && h != "unknown");
+    if (opt) { if (!bad.length || bad.some(s => flags[s] != "unknown")) { if (!opt.noRec) rec(!bad.length) } return opt.onEnd(!bad.length, { flags, bad, shapes: shapes.slice() }) }
+    if (!extra && bad.length == 1 && !hab.length && !bad.some(s => flags[s] == "unknown")) { extra = true; list = [bad[0]]; i = 0; return ask() }
     const asst = shapes.filter(s => res[s] && flags[s] == "assisted");
-    if (!bad.length && asst.length && !solo) { solo = true; list = asst.slice(); i = 0; assisted = {}; asst.forEach(s => { delete res[s]; delete flags[s] });
-      p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Gần xong rồi.</b> Bạn trả lời đúng ${asst.length} câu nhờ giở sổ tay, và đó là cách học đúng. Giờ làm lại đúng những câu đó bằng đề MỚI, lần này tự nghĩ, để chắc là bạn nắm được.</div><p class="sub">Chỗ đã dùng sổ tay: ${asst.map(s => pSHAPE[s]).join("; ")}.</p><p><button class="go" id="so">Làm lại</button> <button class="ghost" id="sn">Đọc thêm sổ tay trước</button></p>`;
-      $("#so").onclick = () => ask(); $("#sn").onclick = () => notebook(id, () => ask(), "Đã đọc, làm lại"); return }
-    if (!bad.length) { rec(true); if (asst.length) { P.pr[id].asst = (P.pr[id].asst || 0) + 1 } L.pd = 1; delete P.shaky[id]; P.done[id] = 1; save(); road(); p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Qua kiểm tra hiểu thật.</b> Bạn làm đúng cả khi đổi số, đổi chiều, đổi bối cảnh và tự phán đúng/sai. Đó là hiểu, không phải nhớ máy móc.</div><p><button class="go" id="gn">Tiếp tục</button></p>`; $("#gn").onclick = () => fromHub ? hub(id) : draw(); return }
+    if (!bad.length && asst.length && !solo) { solo = true; viaAssist = true; list = asst.slice(); i = 0; assisted = {}; asst.forEach(s => { delete res[s]; delete flags[s] });
+      p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Gần xong rồi.</b> Bạn trả lời đúng ${asst.length} câu nhờ giở sổ tay, và đó là cách học đúng. Giờ làm lại đúng những câu đó bằng đề MỚI, lần này tự nghĩ, để chắc là bạn nắm được.</div><p class="sub">Chỗ đã dùng sổ tay: ${asst.map(s => pSHAPE[s]).join("; ")}.</p><p><button class="go" id="so">Làm lại</button></p>`;
+      $("#so").onclick = () => ask(); return }
+    if (!bad.length) { const weakEv = asst.length > 0 || viaAssist; rec(true, weakEv); if (weakEv) { P.pr[id].asst = (P.pr[id].asst || 0) + 1; const lt = P.lt || (P.lt = {}); const it = lt[id] || (lt[id] = { box: 1, due: "", n: 0, lapse: 0, cl: 0, ls: "", seen: "" }); it.box = 1; it.due = tmr() } L.pd = 1; delete P.shaky[id]; P.done[id] = 1; save(); road(); p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Qua kiểm tra hiểu thật.</b> Bạn làm đúng cả khi đổi số, đổi chiều, đổi bối cảnh và tự phán đúng/sai. Đó là hiểu, không phải nhớ máy móc.</div><p><button class="go" id="gn">Tiếp tục</button></p>`; $("#gn").onclick = () => fromHub ? hub(id) : draw(); return }
     hab.forEach(h => { P.hab = P.hab || {}; P.hab[h] = (P.hab[h] || 0) + 1 }); rec(false); delete P.done[id]; P.weak[id] = (P.weak[id] || 0) + 1; save(); road();
     if (testable(id).length) return rootcheck(id);
     p.innerHTML = `<h2>${L.t}</h2><div class="fb">${hab.length ? `<b>Không qua, và lần này không có câu cứu.</b> ${hab.includes("misread") ? "Bạn đọc sai đề: nếu đọc đề chưa chắc thì bài khó nào cũng sai ngay từ đầu. " : ""}${hab.includes("careless") ? "Bạn trả lời quá nhanh và sai: làm ẩu ở đây thì ở công việc thật sẽ thành lỗi gửi đi. " : ""}${hab.includes("overconfident") ? "Bạn rất chắc chắn mà vẫn sai: hiểu lầm nằm sâu hơn lỗi bất cẩn. " : ""}Cẩu thả và đọc ẩu không được bỏ qua.` : `<b>Chưa chắc là hiểu.</b> Có thể bạn đã nhớ các câu trong bài nhưng chưa nắm được ý bên dưới.`} Chỗ chưa vững: ${bad.map(s => pSHAPE[s]).join("; ")}.</div><p class="sub">Mình rút dấu "xong" của bài này và cho học lại từ bước đầu. Lần này, trước mỗi câu hãy tự gạch chân điều đề hỏi và các con số trong đề, rồi mới trả lời. Không hết ý thì chưa sang bài sau.</p><p><button class="go" id="rl">Học lại từ đầu</button></p>`;
