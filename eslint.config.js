@@ -13,8 +13,9 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked,
   },
   // Forward type-info cho svelte-eslint-parser -> @typescript-eslint/parser
+  // (áp dụng cho cả .svelte component và .svelte.ts runes modules)
   {
-    files: ['**/*.svelte'],
+    files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
@@ -34,6 +35,7 @@ export default tseslint.config(
     },
   },
   {
+    files: ['**/*.ts', '**/*.svelte'],
     rules: {
       // Cấm any hoàn toàn
       '@typescript-eslint/no-explicit-any': 'error',
@@ -52,6 +54,15 @@ export default tseslint.config(
         'error',
         { max: 300, skipBlankLines: true, skipComments: true },
       ],
+      // Cho phép số trong template literal (`${count}`)
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        { allowNumber: true },
+      ],
+      // {@html} chỉ render nội dung do chính team soạn (lesson/probe data),
+      // không bao giờ render input người dùng -> không có XSS thực tế.
+      // (Rule mặc định cấm vì sợ XSS; ở đây trust boundary đã rõ.)
+      'svelte/no-at-html-tags': 'off',
     },
   },
 );
