@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { LessonStep } from '../../domain/types';
+  import type { Lesson, LessonStep } from '../../domain/types';
   import BuildStep from './BuildStep.svelte';
   import ChoiceStep from './ChoiceStep.svelte';
   import ClickStep from './ClickStep.svelte';
@@ -14,11 +14,12 @@
   // LessonRunner bọc ngoài, lo feedback / gợi ý / log / chuyển bước.
   interface Props {
     step: LessonStep;
+    lesson: Lesson;
     /** mảng minh họa của bài (cho click/open/tap); rỗng nếu bài không có */
     values: number[];
     onAnswer: (correct: boolean) => void;
   }
-  const { step, values, onAnswer }: Props = $props();
+  const { step, lesson, values, onAnswer }: Props = $props();
 </script>
 
 {#if step.k === 'click'}
@@ -38,6 +39,6 @@
 {:else if step.k === 'build'}
   <BuildStep {step} {onAnswer} />
 {:else}
-  <!-- code / tests: stub chờ engine -->
-  <CodeStep {step} {onAnswer} />
+  <!-- code / tests: viết test + chạy Python thật -->
+  <CodeStep {step} {lesson} {onAnswer} />
 {/if}
