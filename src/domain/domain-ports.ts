@@ -2,11 +2,11 @@
 // - lessons: LESSON_MAP (77 bài)
 // - probeBanks: PROBE_BANKS (76 banks; rd1 không có bank — đúng behavior bản cũ)
 // - tinyBanks: mỗi bank name -> hàm trả về toàn bộ câu hỏi (flow tự shuffle/lấy 3)
-// - tinyFor: (id) => bank name | null ('de' -> 'rd1' do flow xử lý ở call site)
+// - tinyFor: (id, stuckKind?) => bank name | null (quy tắc 'de' -> 'rd1' nằm ở đây)
 // - stages: STAGES (single source of truth)
 // - preq: PREQ (đã merge theo load order)
 import type { DomainPorts } from '../flows/ports';
-import type { TinyQuestion } from './types';
+import type { StuckKind, TinyQuestion } from './types';
 import { LESSON_MAP } from './lessons/index';
 import { STAGES } from './lessons/order';
 import { PREQ, PROBE_BANKS, TINY, tinyFor } from './probe/index';
@@ -33,7 +33,7 @@ export function createDomainPorts(): DomainPorts {
     lessons: LESSON_MAP,
     probeBanks: PROBE_BANKS,
     tinyBanks: buildTinyBanks(),
-    tinyFor: (id: string) => tinyFor(id),
+    tinyFor: (id: string, stuckKind?: StuckKind) => tinyFor(id, stuckKind),
     stages: STAGES,
     preq: PREQ,
   };

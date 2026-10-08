@@ -9,6 +9,7 @@ import type {
   ProgressState,
   ProgressStorage,
   Stage,
+  StuckKind,
   TinyQuestion,
 } from '../domain/types';
 
@@ -21,7 +22,7 @@ export interface DomainPorts {
   /** Ngân hàng tiny-check: tên bank -> hàm sinh danh sách câu hỏi. */
   tinyBanks: Record<string, () => TinyQuestion[]>;
   /** Bank tiny-check cho bài id (null = không có). */
-  tinyFor: (id: string) => string | null;
+  tinyFor: (id: string, stuckKind?: StuckKind) => string | null;
   /** Lộ trình các giai đoạn (thay cho global STAGES). */
   stages: Stage[];
   /** Đồ thị tiền đề: id -> các id nền trực tiếp (thay cho global PREQ). */
