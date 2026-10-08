@@ -5,7 +5,7 @@ const root = path.join(__dirname, '..') + '/';
 const html = fs.readFileSync(root + 'index.html', 'utf8').replace(/<link[^>]*>/g, '').replace(/<script src="[^"]*"><\/script>/g, '');
 const w = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/' }).window; w.setTimeout = f => { f(); return 0 };
 for (const f of [...fs.readFileSync(root + 'index.html', 'utf8').matchAll(/<script src="([^"]+)"/g)].map(m => m[1])) { const el = w.document.createElement('script'); el.textContent = fs.readFileSync(root + f, 'utf8'); w.document.body.appendChild(el) }
-w.eval('window.__x={LES,PRB,P,STAGES,ids,unlocked,probe,notebook,road,hub}');
+w.eval('window.__x={LES,PRB,P,STAGES,ids,unlocked,probe,notebook,road,hub,TINY,tinyFor,tinyCheck}');
 const X = w.__x, R = w.REV, $ = s => w.document.querySelector(s), $$ = s => [...w.document.querySelectorAll(s)];
 let bad = 0; const ok = (c, m) => { if (!c) { bad++; console.log('FAIL:', m) } };
 const txt = h => { const d = w.document.createElement('div'); d.innerHTML = h; return d.textContent };
@@ -18,6 +18,11 @@ function drive(stop, modeFn = () => 'right', conf = 2) {
     if ($(stop)) return true;
     const cb = $$('[data-c]'); if (cb.length) { k++; cb.find(b => b.dataset.c == conf).click(); continue }
     const nx = $('#nx2'); if (nx) { nx.click(); continue }
+    const tcn = $('#tcn2'); if (tcn) { tcn.click(); continue }
+    const tinB = $$('#tin .opts button');
+    if (tinB.length) { const tq = w.__tinyQ, b = tinB.find(b => b.textContent == txt(tq.o[tq.a])); if (!b) { bad++; console.log('KHÔNG THẤY LỰA CHỌN ĐÚNG (tiny)'); return false } b.click(); continue }
+    const tinI = $('#tin #v'); if (tinI) { tinI.value = w.__tinyQ.a; $('#tok').click(); continue }
+    const fks = $$('[data-fk]'); if (fks.length) { fks[1].click(); continue }
     const opts = $$('.opts button'), mode = modeFn(k);
     if (opts.length) { const q = last, right = $('#wq') ? q.why.o[q.why.a] : q.o[q.a]; let b = opts.find(b => b.textContent == txt(right)); if (!b) { bad++; console.log('KHÔNG THẤY LỰA CHỌN ĐÚNG'); return false } if (mode == 'wrong') b = opts.find(x => x !== b); b.click(); continue }
     const inp = $('#v'); if (inp) { inp.value = mode == 'right' ? last.a : last.a + 1; $('#ok').click(); continue }
@@ -41,19 +46,38 @@ ok(X.LES.rd1.steps.length >= 8 && X.LES.rd1.steps.every(s => s.s), 'rd1 phải c
 // 3. màn câu hỏi có «Chưa hiểu» và sổ tay
 reset(); delete X.P.done.k3; X.probe('k3', 1);
 ok($('[data-c="0"]') && $('#nbk'), 'câu hỏi phải có nút «Chưa hiểu» và nút sổ tay');
-// 4. giở sổ tay rồi quay lại ĐÚNG câu hỏi đó; làm đúng nhờ sổ tay thì phải làm lại bằng đề mới (chưa cho qua)
+// 4. giở sổ tay -> tiny check -> quay lại ĐÚNG câu hỏi đó; làm đúng nhờ sổ tay thì phải làm lại bằng đề mới
+const tinyOk = () => { for (let t = 0; t < 8 && $('#tin'); t++) { const q = w.__tinyQ, tb = $$('#tin .opts button'); if (tb.length) { const b = tb.find(b => b.textContent == txt(q.o[q.a])); if (!b) return false; b.click() } else { const vi = $('#tin #v'); if (!vi) return false; vi.value = q.a; $('#tok').click() } const nx = $('#tcn2'); if (nx) nx.click(); else return false } return !$('#tin') };
 const q1 = qText(); $('#nbk').click(); ok(/Sổ tay/.test($('#panel').textContent), 'phải hiện sổ tay'); ok(X.P.pr.k3.unk == 1, 'phải đếm một lần giở sổ tay');
-$('#nbb').click(); ok(qText() == q1, 'quay lại phải ra CÙNG câu hỏi, không phải câu mới');
+$('#nbb').click(); ok(/Kiểm tra nhanh/.test($('#panel').textContent), 'sau sổ tay phải có tiny check, không quay lại câu cũ ngay');
+ok(tinyOk(), 'tiny check phải làm được'); ok(qText() == q1, 'qua tiny check phải quay lại ĐÚNG câu hỏi cũ');
 ok(drive('#so'), 'chưa tới màn làm lại'); ok(/Gần xong rồi/.test($('#panel').textContent) && !X.P.done.k3, 'đúng nhờ sổ tay: chưa được cho qua, phải làm lại bằng đề mới');
+ok(!$('#nbk'), 'vòng solo KHÔNG được hiện nút sổ tay (đóng lỗ hổng double-notebook)');
 const lastBefore = last; $('#so').click(); ok(qText() && last !== lastBefore, 'câu làm lại phải được sinh mới (không dùng lại đề cũ)');
 ok(drive('#gn'), 'chưa tới màn qua bài'); ok(X.P.done.k3 == 1 && /Qua kiểm tra/.test($('#panel').textContent), 'làm lại đúng, không sổ tay: phải qua bài');
-ok(!X.P.pr.k3.asst, 'qua bài tự làm thì không được ghi là qua nhờ sổ tay');
+ok(X.P.pr.k3.asst == 1, 'qua bài sau khi dùng sổ tay phải được ghi nhận là assisted');
+ok(!(X.P.pr.k3.days || []).includes(X.P.pr.k3.last), 'đúng nhờ sổ tay KHÔNG được tính vào số ngày "Vững"');
+ok(X.P.lt.k3 && X.P.lt.k3.box == 1, 'đúng nhờ sổ tay phải về hộp ôn số 1 để ôn sớm');
 
-// 5. «Chưa hiểu» (bấm thẳng) cũng mở sổ tay, không phạt (không trượt, không mất dấu xong, không tăng weak)
-reset(); X.probe('k3', 1); $('[data-c="0"]').click(); ok(/Sổ tay/.test($('#panel').textContent), '«Chưa hiểu» phải mở sổ tay');
+// 5. «Chưa hiểu» là learning signal: hỏi rõ vướng ở đâu rồi mở đúng reference; không phạt
+reset(); X.probe('k3', 1); $('[data-c="0"]').click();
+ok(/vướng ở đâu/.test($('#panel').textContent), '«Chưa hiểu» phải hỏi rõ vướng ở đâu, không ép đoán');
+$('[data-fk="1"]').click(); ok(/Sổ tay/.test($('#panel').textContent), 'chọn loại vướng mắc phải mở sổ tay');
 ok(X.P.done.k3 == 1 && !X.P.weak.k3 && !(X.P.pr.k3.f), '«Chưa hiểu» không được bị tính là trượt');
+ok(X.P.pr.k3.fk && X.P.pr.k3.fk.concept == 1, 'phải ghi nhận loại vướng mắc (concept)');
 ok($('#nbr'), 'phải có đường học lại bài');
-for (let k = 0; k < 2; k++) { $('#nbb').click(); $('[data-c="0"]').click() } ok(/nên học lại bài từ đầu/.test($('#panel').textContent), 'giở nhiều lần phải khuyên học lại từ đầu');
+// phân loại "không hiểu đề" mở đúng reference đọc đề (rd1), kèm tiny check đọc đề
+reset(); X.probe('k3', 1); $('[data-c="0"]').click(); $('[data-fk="0"]').click();
+ok(/Sổ tay: Đọc đề/.test($('#panel').textContent), '«không hiểu đề» phải mở sổ tay bài đọc đề (rd1)');
+ok(X.P.pr.k3.fk && X.P.pr.k3.fk.de == 1, 'phải ghi nhận loại không-hiểu-đề');
+$('#nbb').click(); ok(/Kiểm tra nhanh/.test($('#panel').textContent), 'sau reference đọc đề phải có tiny check đọc đề');
+ok(tinyOk(), 'tiny check đọc đề phải làm được');
+// "chỉ không chắc đáp án" thì quay lại chọn độ chắc chắn, không mở sổ tay, không tính unk
+reset(); X.probe('k3', 1); $('[data-c="0"]').click(); $('[data-fk="5"]').click();
+ok($('[data-c="3"]') && !(X.P.pr.k3 || {}).unk, '«chỉ không chắc» phải quay lại màn chắc chắn, không giở sổ tay');
+// giở nhiều lần phải khuyên học lại từ đầu
+reset(); X.P.pr.k3 = { p: 0, f: 0, miss: {}, unk: 2 }; X.notebook('k3', () => { }, 'Quay lại');
+ok(/nên học lại bài từ đầu/.test($('#panel').textContent), 'giở nhiều lần phải khuyên học lại từ đầu');
 
 // 6. sai SAU KHI giở sổ tay: không bị gắn cẩu thả / tự tin sai (đã nỗ lực), vẫn được câu thêm
 reset(); X.probe('k3', 1); $('#nbk').click(); $('#nbb').click(); drive('#nx2', () => 'wrong', 3);
@@ -67,6 +91,12 @@ reset(); X.P.pr = { l1: { p: 1, f: 0, miss: {}, last: '2000-01-01', days: ['2000
 X.road(); $('#lrv').click(); $('#rvs').click(); ok(!$('#nbk') && $('[data-c="0"]'), 'khi ôn phải đóng sách (không sổ tay) nhưng vẫn có «Chưa nhớ»');
 $('[data-c="0"]').click(); ok($('#rvx'), 'phải kết thúc buổi ôn'); ok(R.item('l1').box == 3 && R.item('l1').cl == 0 && X.P.pr.l1.f == 0, '«Chưa nhớ» khi ôn không được hạ hộp hay tính trượt');
 ok(/chưa nhớ/.test($('#panel').textContent) && $('[data-nb]'), 'phải nói rõ và mời giở sổ tay'); $('[data-nb]').click(); ok(/Sổ tay/.test($('#panel').textContent), 'nút sổ tay phải mở sổ tay');
+$('#nbb').click(); ok(/Kiểm tra nhanh/.test($('#panel').textContent), 'ôn: sau sổ tay phải có tiny check');
+ok(tinyOk(), 'ôn: tiny check phải làm được');
+ok(/Ôn lại sau khi đọc/.test($('#panel').textContent), 'ôn: phải có MỘT câu hỏi mới sau khi đọc');
+const prBefore = JSON.stringify(X.P.pr.l1); ok(drive('#rtb'), 'ôn: chưa tới màn kết quả');
+ok(JSON.stringify(X.P.pr.l1) == prBefore, 'ôn: câu hỏi sau khi đọc KHÔNG được tính điểm vào hồ sơ probe');
+$('#rtb').click(); ok(/Ôn cách quãng/.test($('#panel').textContent), 'ôn: phải về lại buổi ôn');
 reset(); X.P.pr = {}; X.road(); $('#lhc').click(); $('#hcs').click(); drive('#hcx', (k) => 'right', 2);
 reset(); X.P.pr = {}; X.road(); $('#lhc').click(); $('#hcs').click(); for (let k = 0; k < 6; k++) $('[data-c="0"]').click(); ok($('#hcx'), 'kiểm tra nền phải kết thúc');
 ok(Object.values(R.HC().fail).every(n => !n) && Object.keys(X.P.shaky).length == 0, '«Chưa nhớ» ở kiểm tra nền không được tính là sai hay ⚠'); ok($$('[data-nb]').length == 6, 'phải mời giở sổ tay cho từng bài chưa nhớ');

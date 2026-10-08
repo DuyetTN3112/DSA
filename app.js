@@ -745,11 +745,12 @@ STAGES[0].Q=["sm1","fz"];STAGES[1].Q=["sas","cnd","mms","mp","msa"];STAGES[2].Q=
 function addQ(){document.querySelectorAll("#road .stage").forEach((d,i)=>{const Q=STAGES[i]&&STAGES[i].Q;if(Q)d.insertAdjacentHTML("beforeend",`<small style="margin-top:10px"><b>Luyện đề kiểu LeetCode, HackerRank</b></small>`+Q.map(id=>{const b=PB[id];return`<button class="lb ${P.q[id]?"done":""} ${cur=="q:"+id?"cur":""}" data-q="${id}" ${P.done[b.req]?"":"disabled"}><span>${b.t}<br><small style="color:var(--mut)">${b.src}</small></span></button>`}).join(""))});
 document.querySelectorAll("#road [data-q]").forEach(b=>b.onclick=()=>prob(b.dataset.q))}
 function prob(id){const B=PB[id],p=$("#panel");cur="q:"+id;road();p.className="panel split";let hn=0;
-p.innerHTML=`<div class="lt"><h2>${B.t}</h2><p class="sub">${B.src}, mức ${B.lv}</p><div class="q" id="dd"></div><pre class="out" id="ex"></pre><div id="ap"></div><p><button class="ghost" id="hp">Cần giúp</button></p><pre class="out" id="hl" hidden></pre></div><div class="rt" id="rt"></div>`;
+p.innerHTML=`<div class="lt"><h2>${B.t}</h2><p class="sub">${B.src}, mức ${B.lv}</p><div class="q" id="dd"></div><pre class="out" id="ex"></pre><div id="ap"></div><p><button class="ghost" id="hp">Cần giúp</button> <button class="ghost" id="hpb">📖 Giở sổ tay bài liên quan</button></p><pre class="out" id="hl" hidden></pre></div><div class="rt" id="rt"></div>`;
 $("#dd").textContent=B.d;$("#ex").textContent="Ví dụ:\n"+B.T.slice(0,3).map(([c,e])=>c+"  ->  "+e).join("\n");
 const[q,o,a,w]=B.ap;$("#ap").innerHTML=`<div class="q"><b>Trước khi gõ, hãy nghĩ cách giải.</b> ${q}</div><div class="opts">${o.map((x,n)=>`<button data-o="${n}">${x}</button>`).join("")}</div><div id="fb"></div>`;
 $("#rt").innerHTML=`<p class="sub">Trả lời câu hỏi bên trái trước. Nghĩ cách giải trước, gõ code sau.</p>`;
 $("#ap").querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{if(+b.dataset.o==a){fb("Đúng. "+w,1);ed_()}else fb("Chưa đúng, không sao. Đọc lại đề và thử chọn lại.")});
+$("#hpb").onclick=()=>notebook(B.req,()=>prob(id),"Quay lại đề");
 $("#hp").onclick=()=>{const h=$("#hl");h.hidden=false;h.textContent=`Gợi ý ${Math.min(hn+1,3)}/3:\n`+(hn<2?B.h[hn]:"Lời giải tham khảo. Hãy tự gõ lại bằng tay, rồi mai thử giải lại mà không nhìn:\n"+B.h[2]);hn++};
 function ed_(){$("#rt").innerHTML=`<textarea class="code" id="ed" spellcheck="false"></textarea><p><button class="go" id="run">Chạy tất cả test</button></p><pre class="out" id="out"></pre>`;const e=$("#ed");e.value=B.code||B.s;e.oninput=()=>B.code=e.value;
 e.onkeydown=k=>{if(k.key=="Tab"){k.preventDefault();e.setRangeText("    ",e.selectionStart,e.selectionEnd,"end");B.code=e.value}};$("#run").onclick=()=>runProb(B,id)}}
