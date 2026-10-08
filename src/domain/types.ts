@@ -65,6 +65,13 @@ export interface OrderStep extends StepBase {
   s: string;
   /** [nội dung, gợi ý] từng mảnh cần sắp xếp */
   items: [string, string][];
+  /** Parsons mode: render mảnh dạng code block (monospace, giữ thụt lề) */
+  code?: boolean;
+  /**
+   * Index các mảnh thừa (distractor): chọn phải bị nhắc, không tính tiến độ.
+   * Hint của mảnh distractor (items[i][1]) là giải thích vì sao nó thừa.
+   */
+  distractors?: number[];
 }
 
 export interface ReflectStep extends StepBase {

@@ -25,8 +25,8 @@ describe('STAGES (bản cuối, port từ main:app.js)', () => {
 });
 
 describe('ALL_IDS', () => {
-  it('đủ 77 bài theo đúng thứ tự lộ trình (gồm rd1 sau k3)', () => {
-    expect(ALL_IDS).toHaveLength(77);
+  it('đủ 82 bài theo đúng thứ tự lộ trình (gồm rd1 sau k3)', () => {
+    expect(ALL_IDS).toHaveLength(82);
     expect(ALL_IDS[0]).toBe('k1');
     expect(ALL_IDS[ALL_IDS.length - 1]).toBe('w10');
     expect(ALL_IDS.indexOf('rd1')).toBe(ALL_IDS.indexOf('k3') + 1);

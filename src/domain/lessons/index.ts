@@ -8,9 +8,11 @@ import { PYTHON_BASICS_LESSONS } from './python-basics';
 import { CODE_LABS_1_LESSONS } from './code-labs-1';
 import { CODE_LABS_2_LESSONS } from './code-labs-2';
 import { ALGORITHMS_LESSONS } from './algorithms';
+import { SORTING_LESSONS } from './sorting';
 import { HASHMAP_LESSONS } from './hashmap';
 import { RECURSION_LESSONS } from './recursion';
 import { STRUCTURES_LESSONS } from './structures';
+import { HEAP_LESSONS } from './heap';
 import { GRAPHS_DP_LESSONS } from './graphs-dp';
 import { DEBUG_LESSONS } from './debug';
 import { PROJECTS_LESSONS } from './projects';
@@ -39,9 +41,11 @@ export const ALL_LESSONS: RichLesson[] = [
   ...CODE_LABS_1_LESSONS,
   ...CODE_LABS_2_LESSONS,
   ...ALGORITHMS_LESSONS,
+  ...SORTING_LESSONS,
   ...HASHMAP_LESSONS,
   ...RECURSION_LESSONS,
   ...STRUCTURES_LESSONS,
+  ...HEAP_LESSONS,
   ...GRAPHS_DP_LESSONS,
   ...DEBUG_LESSONS,
   ...PROJECTS_LESSONS,

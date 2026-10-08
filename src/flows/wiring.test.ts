@@ -1,5 +1,5 @@
 // Integration test: lái ProbeFlow + StuckRecovery + TinyCheckFlow bằng dữ liệu
-// thật (77 bài, 76 banks) qua đúng các đường mà ProbeScreen/App dùng.
+// thật (82 bài, 81 banks) qua đúng các đường mà ProbeScreen/App dùng.
 // Không DOM — chỉ kiểm tra wiring logic giữa domain data và flows.
 import { describe, expect, it } from 'vitest';
 import type { ProgressState, ProgressStorage } from '../domain/types';
@@ -71,8 +71,8 @@ function makeProbe(lessonId: string): ProbeFlow {
 describe('createDomainPorts', () => {
   it('nối đủ dữ liệu thật', () => {
     const ports = createDomainPorts();
-    expect(Object.keys(ports.lessons)).toHaveLength(77);
-    expect(Object.keys(ports.probeBanks)).toHaveLength(76);
+    expect(Object.keys(ports.lessons)).toHaveLength(82);
+    expect(Object.keys(ports.probeBanks)).toHaveLength(81);
     expect(ports.probeBanks['rd1']).toBeUndefined();
     expect(ports.stages.length).toBeGreaterThan(0);
     expect(ports.tinyFor('l1')).toBe('k3');
