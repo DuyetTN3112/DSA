@@ -85,7 +85,7 @@
 
 {#if step}
   {#key stepIndex}
-    <StepView {step} values={needsBoxes ? values : []} onAnswer={handleAnswer} />
+    <StepView {step} {lesson} values={needsBoxes ? values : []} onAnswer={handleAnswer} />
   {/key}
 
   {#if feedback}

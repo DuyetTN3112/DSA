@@ -66,10 +66,7 @@ export class StuckRecovery {
 
   /** Port lookupRef(): sau khi đọc xong -> tiny check bài tham chiếu. */
   private beginTiny(): void {
-    const bank =
-      this.opts.kind === 'de'
-        ? 'rd1'
-        : (this.opts.ports.tinyFor(this.opts.lessonId) ?? '');
+    const bank = this.opts.ports.tinyFor(this.opts.lessonId, this.opts.kind ?? undefined) ?? '';
     const nb = this.notebook;
     const started =
       nb !== null &&

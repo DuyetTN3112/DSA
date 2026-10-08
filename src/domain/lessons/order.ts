@@ -139,7 +139,10 @@ export const STAGES: StageWithQBank[] = [
     "d": "Chia đôi mỗi lần",
     "L": [
       "bs",
-      "bub"
+      "bub",
+      "bo",
+      "mrg",
+      "qck"
     ]
   },
   {
@@ -160,7 +163,9 @@ export const STAGES: StageWithQBank[] = [
       "n2",
       "n3",
       "t1",
-      "t2"
+      "t2",
+      "hep",
+      "hps"
     ]
   },
   {

@@ -4,7 +4,9 @@ import { basicsBanks } from './basics';
 import { foundationBanks } from './foundation';
 import { kindergartenBanks } from './kindergarten';
 import { coreBanks } from './core';
+import { sortingBanks } from './sorting';
 import { structuresBanks } from './structures';
+import { heapBanks } from './heap';
 import { recursionBanks } from './advanced-recursion';
 import { linkedlistBanks } from './advanced-linkedlist';
 import { treeBanks } from './advanced-tree';
@@ -23,7 +25,9 @@ export const PROBE_BANKS: Record<string, ProbeBank> = {
   ...foundationBanks,
   ...kindergartenBanks,
   ...coreBanks,
+  ...sortingBanks,
   ...structuresBanks,
+  ...heapBanks,
   ...recursionBanks,
   ...linkedlistBanks,
   ...treeBanks,

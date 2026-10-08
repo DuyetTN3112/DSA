@@ -83,6 +83,8 @@
         onOpenLesson: openLesson,
         onOpenRootcheck: openRootcheck,
         onContinue: (lid) => {
+          // Chỉ tới đây khi đã qua probe: lúc này mới đánh dấu done.
+          markDone(lid);
           const next = nextLessonId(lid);
           if (next) openLesson(next);
           else goRoad();
@@ -92,19 +94,24 @@
     view = { name: 'probe', flow };
   }
 
-  /** Học xong các bước của bài: đánh dấu done rồi kiểm tra hiểu thật. */
+  /** Học xong các bước của bài: kiểm tra hiểu thật (probe), qua mới đánh dấu done. */
   function completeLessonSteps(id: string): void {
-    const st = storage.load();
-    st.done[id] = 1;
-    storage.save(st);
     if (ports.probeBanks[id] !== undefined) {
       startProbe(id);
     } else {
       // Bài không có bank kiểm tra (vd rd1): xong là qua.
+      markDone(id);
       const next = nextLessonId(id);
       if (next) openLesson(next);
       else goRoad();
     }
+  }
+
+  /** Đánh dấu bài đã xong (chỉ gọi sau khi qua probe, hoặc bài không cần probe). */
+  function markDone(id: string): void {
+    const st = storage.load();
+    st.done[id] = 1;
+    storage.save(st);
   }
 
   function openReview(): void {
