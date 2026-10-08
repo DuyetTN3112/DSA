@@ -38,7 +38,7 @@ const PREQ = { l2: ["l1"], l3: ["l1", "l2"], w1: ["l3"], w2: ["l2"], w3: ["l3"] 
 const anc = id => { const o = []; const v = x => (PREQ[x] || []).forEach(y => { v(y); if (!o.includes(y)) o.push(y) }); v(id); return o };
 const tmr = () => { const d = new Date(Date.now() + 864e5); return d.toISOString().slice(0, 10) };
 /* bài Python cơ bản gần nhất trong chuỗi tiền đề: dùng khi người học "hiểu ý nhưng không biết viết Python" */
-const pyRef = id => { const py = ["b1", "b2", "b3", "b4"]; const a = anc(id).filter(x => py.includes(x) && LES[x]); return a.length ? a[a.length - 1] : id };
+const pyRef = id => { const py = ["p1", "p2", "p3", "p4", "b1", "b2", "b3", "b4"]; const a = anc(id).filter(x => py.includes(x) && LES[x]); return a.length ? a[a.length - 1] : id };
 const deps = id => Object.keys(LES).filter(x => anc(x).includes(id));
 const testable = id => anc(id).filter(y => PRB[y] && P.done[y]);
 function rootcheck(id) {
