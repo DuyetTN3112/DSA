@@ -38,7 +38,7 @@ const PREQ = { l2: ["l1"], l3: ["l1", "l2"], w1: ["l3"], w2: ["l2"], w3: ["l3"] 
 const anc = id => { const o = []; const v = x => (PREQ[x] || []).forEach(y => { v(y); if (!o.includes(y)) o.push(y) }); v(id); return o };
 const tmr = () => { const d = new Date(Date.now() + 864e5); return d.toISOString().slice(0, 10) };
 /* bài Python cơ bản gần nhất trong chuỗi tiền đề: dùng khi người học "hiểu ý nhưng không biết viết Python" */
-const pyRef = id => { const py = ["p1", "p2", "p3", "p4", "b1", "b2", "b3", "b4"]; const a = anc(id).filter(x => py.includes(x) && LES[x]); return a.length ? a[a.length - 1] : id };
+const pyRef = id => { const py = ["b1", "b2", "b3", "b4"]; const a = anc(id).filter(x => py.includes(x) && LES[x]); return a.length ? a[a.length - 1] : id };
 const deps = id => Object.keys(LES).filter(x => anc(x).includes(id));
 const testable = id => anc(id).filter(y => PRB[y] && P.done[y]);
 function rootcheck(id) {
@@ -96,8 +96,8 @@ function probe(id, fromHub, opt) {
     if (!extra && bad.length == 1 && !hab.length && !bad.some(s => flags[s] == "unknown")) { extra = true; list = [bad[0]]; i = 0; return ask() }
     const asst = shapes.filter(s => res[s] && flags[s] == "assisted");
     if (!bad.length && asst.length && !solo) { solo = true; viaAssist = true; list = asst.slice(); i = 0; assisted = {}; asst.forEach(s => { delete res[s]; delete flags[s] });
-      p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Gần xong rồi.</b> Bạn trả lời đúng ${asst.length} câu nhờ giở sổ tay, và đó là cách học đúng. Giờ làm lại đúng những câu đó bằng đề MỚI, lần này tự nghĩ, để chắc là bạn nắm được.</div><p class="sub">Chỗ đã dùng sổ tay: ${asst.map(s => pSHAPE[s]).join("; ")}.</p><p><button class="go" id="so">Làm lại</button> <button class="ghost" id="sn">Đọc thêm sổ tay trước</button></p>`;
-      $("#so").onclick = () => ask(); $("#sn").onclick = () => notebook(id, () => ask(), "Đã đọc, làm lại"); return }
+      p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Gần xong rồi.</b> Bạn trả lời đúng ${asst.length} câu nhờ giở sổ tay, và đó là cách học đúng. Giờ làm lại đúng những câu đó bằng đề MỚI, lần này tự nghĩ, để chắc là bạn nắm được.</div><p class="sub">Chỗ đã dùng sổ tay: ${asst.map(s => pSHAPE[s]).join("; ")}.</p><p><button class="go" id="so">Làm lại</button></p>`;
+      $("#so").onclick = () => ask(); return }
     if (!bad.length) { const weakEv = asst.length > 0 || viaAssist; rec(true, weakEv); if (weakEv) { P.pr[id].asst = (P.pr[id].asst || 0) + 1; const lt = P.lt || (P.lt = {}); const it = lt[id] || (lt[id] = { box: 1, due: "", n: 0, lapse: 0, cl: 0, ls: "", seen: "" }); it.box = 1; it.due = tmr() } L.pd = 1; delete P.shaky[id]; P.done[id] = 1; save(); road(); p.innerHTML = `<h2>${L.t}</h2><div class="fb ok"><b>Qua kiểm tra hiểu thật.</b> Bạn làm đúng cả khi đổi số, đổi chiều, đổi bối cảnh và tự phán đúng/sai. Đó là hiểu, không phải nhớ máy móc.</div><p><button class="go" id="gn">Tiếp tục</button></p>`; $("#gn").onclick = () => fromHub ? hub(id) : draw(); return }
     hab.forEach(h => { P.hab = P.hab || {}; P.hab[h] = (P.hab[h] || 0) + 1 }); rec(false); delete P.done[id]; P.weak[id] = (P.weak[id] || 0) + 1; save(); road();
     if (testable(id).length) return rootcheck(id);

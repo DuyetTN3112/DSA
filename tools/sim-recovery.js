@@ -60,12 +60,20 @@ ok(X.P.done.k3 == 1, 'S2: đúng câu thêm thì qua');
 ok(X.P.pr.k3.lucky == 1, 'S2: lucky phải được persist (không mất dấu)');
 ok((X.P.pr.k3.days || []).includes(X.P.pr.k3.last), 'S2: qua sau 1 lần lucky + câu thêm đúng vẫn tính ngày (đã chứng minh lại)');
 
-// --- Scenario 3: đọc reference nhưng tiny check SAI -> được regress ---
-reset(); X.probe('k3', 1);
-$('#nbk').click(); $('#nbb').click(); ok(/Kiểm tra nhanh/.test($('#panel').textContent), 'S3: phải có tiny check');
-for (let t = 0; t < 8 && $('#tin'); t++) { const q = w.__tinyQ, tb = $$('#tin .opts button'); if (tb.length) { tb.find(b => b.textContent != txt(q.o[q.a])).click() } else { $('#tin #v').value = q.a + 100; $('#tok').click() } $('#tcn2').click(); }
-ok(/chưa chắc/.test($('#panel').textContent), 'S3: tiny sai phải báo chưa chắc');
-ok($('#tcr') && $('#tcn'), 'S3: phải có đường regress (học lại / kiểm tra nền)');
+// --- Scenario 3: đọc reference nhưng tiny check SAI -> được regress, và bấm thử từng đường ---
+function tinyFail(tag) {
+  reset(); X.probe('k3', 1);
+  $('#nbk').click(); $('#nbb').click(); ok(/Kiểm tra nhanh/.test($('#panel').textContent), tag + ': phải có tiny check');
+  for (let t = 0; t < 8 && $('#tin'); t++) { const q = w.__tinyQ, tb = $$('#tin .opts button'); if (tb.length) { tb.find(b => b.textContent != txt(q.o[q.a])).click() } else { $('#tin #v').value = q.a + 100; $('#tok').click() } $('#tcn2').click(); }
+  ok(/chưa chắc/.test($('#panel').textContent), tag + ': tiny sai phải báo chưa chắc');
+  ok($('#tcr') && $('#tcn'), tag + ': phải có đường regress (học lại / kiểm tra nền)');
+}
+tinyFail('S3a');
+$('#tcr').click();
+ok(X.LES.k3.pd === 0 && /Thứ tự/.test($('#panel').textContent), 'S3a: bấm học lại phải reset bài về bước đầu (start chạy thật)');
+tinyFail('S3b');
+$('#tcn').click();
+ok(/Kiểm tra nền/.test($('#panel').textContent), 'S3b: bấm kiểm tra nền phải sang màn kiểm tra nền (rootcheck chạy thật)');
 
 // --- Scenario 4: vòng solo mà "Chưa hiểu" -> trượt, không câu cứu ---
 reset(); X.probe('k3', 1);
@@ -97,6 +105,13 @@ X.P.pr = { k3: { p: 2, f: 0, miss: {}, last: '2000-01-01', days: ['2000-01-01'],
 X.road(); $('#lpf').click();
 ok(/đoán đúng/.test($('#panel').textContent) && /2/.test($('#panel').textContent), 'HS: phải hiện số lần đoán đúng');
 ok(/không hiểu đề/.test($('#panel').textContent), 'HS: phải hiện breakdown loại vướng mắc');
+
+// --- lucky phải hiện ngay cả khi chưa từng assisted (bug: từng nằm trong conditional asst) ---
+reset();
+X.P.pr = { k3: { p: 1, f: 0, miss: {}, last: '2000-01-01', days: ['2000-01-01'], lucky: 3, fk: {} } };
+X.road(); $('#lpf').click();
+ok(/đoán đúng/.test($('#panel').textContent) && /3/.test($('#panel').textContent), 'HS2: lucky phải hiện ngay cả khi chưa từng assisted');
+ok(!/nhờ sổ tay/.test($('#panel').textContent), 'HS2: chưa assisted thì không được hiện dòng nhờ sổ tay');
 
 // --- notebook k3 dạng mini-textbook: đủ 10 mục + link nền ---
 X.notebook('k3', () => { }, 'Quay lại');

@@ -176,7 +176,7 @@
       `<p><b>Nền tảng yếu (số lần phải học lại):</b> ${weak.length ? weak.map(([i, n]) => `${T(i)} (${n})`).join("; ") : "chưa có."}</p>` +
       `<p><b>Dạng câu hay sai nhất:</b> ${ms.length ? ms.slice(0, 3).map(([s, c]) => `${SH[s]} (${c})`).join("; ") : "chưa có dữ liệu."}</p>` +
       `<p><b>Thói quen cần sửa:</b> ${hb.length ? hb.map(([s, c]) => `${HAB[s]} (${c})`).join("; ") : "chưa phát hiện."}</p>` +
-      `<p><b>Bài hay phải giở sổ tay (bạn nói thật là chưa hiểu, rất tốt):</b> ${unk.length ? unk.map(([i, n]) => `${T(i)} (${n} lần)`).join("; ") : "chưa có."}${asst ? ` Số lần qua kiểm tra nhờ sổ tay: ${asst}.${lucky ? ` Số lần đoán đúng (không tính vào hiểu): ${lucky}.` : ""} ` : ""}</p>` +
+      `<p><b>Bài hay phải giở sổ tay (bạn nói thật là chưa hiểu, rất tốt):</b> ${unk.length ? unk.map(([i, n]) => `${T(i)} (${n} lần)`).join("; ") : "chưa có."}${asst ? ` Số lần qua kiểm tra nhờ sổ tay: ${asst}.` : ""}${lucky ? ` Số lần đoán đúng (không tính vào hiểu): ${lucky}.` : ""}</p>` +
       (fks.length ? `<p><b>Chỗ hay vướng khi bấm «Chưa hiểu»:</b> ${fks.map(([k, c]) => `${FKL[k]} (${c})`).join("; ")}.</p>` : "") +
       `<p><b>Hộp ôn cách quãng</b> (1 đến 5): ${bx.join(" / ")}. Đến hạn hôm nay: ${due}. Kiểm tra nền tảng: ${HC().last ? "lần cuối " + HC().last : "chưa làm lần nào"}.</p>` +
       `<div class="fb ok"><b>Bước tiếp theo:</b> ${next}</div><p class="sub">Dữ liệu chỉ gồm điều app đo được: đúng/sai, độ chắc chắn, thời gian trả lời, dạng câu. App chưa đo số gợi ý đã dùng khi làm bài code.</p>`;
