@@ -57,7 +57,7 @@ const TINY = {
   ],
 };
 /* bài nào dùng ngân hàng tiny-check nào khi không có bank riêng */
-const TINY_FOR = { l1: "k3", b5: "k3" };
+const TINY_FOR = { l1: "k3", a2: "k3", a3: "k3", b5: "k3", bs: "k3" };
 function tinyFor(id, fk) {
   if (fk === "de") return "rd1"; // không hiểu đề -> kiểm tra lại kỹ năng đọc đề
   if (TINY[id]) return id;
@@ -110,7 +110,7 @@ LES.k3.nbk = {
   pitfalls: "Viết chỉ số n cho hàng n bạn (vượt quá hàng); nhầm «thứ tự» với «chỉ số» khi đề hỏi một đằng, mình trả lời một nẻo; viết <code>a[len(a)]</code> thay vì <code>a[len(a) - 1]</code>.",
   selfcheck: "Mẹo kiểm tra: hàng 5 bạn thì các chỉ số là 0, 1, 2, 3, 4. Nếu bạn viết ra chỉ số 5 thì đã vượt quá hàng. Mỗi lần dùng chỉ số, tự hỏi: «có mấy người đứng trước?»",
   link: "Trong bài đang làm: đề hỏi «vị trí» thì trả chỉ số; đề hỏi «giá trị» thì trả <code>numbers[i]</code>. Đọc đề (rd1): gạch chân xem đề hỏi giá trị hay vị trí trước khi tính.",
-  pre: ["k1"], links: ["rd1", "l1"],
+  pre: ["k1"], links: ["rd1", "l1", "a2"],
 };
 LES.k3.note = `<b>Hai cách đếm, hai câu hỏi khác nhau.</b><br>• Đếm thường ngày hỏi: <i>"bạn này đứng thứ mấy?"</i> → thứ nhất, thứ hai, thứ ba...<br>• Máy hỏi: <i>"phía trước bạn này có mấy người?"</i> → bạn đầu hàng có <b>0</b> người đứng trước, bạn kế có <b>1</b>, bạn kế nữa có <b>2</b>...<br>Số "người đứng trước" gọi là <b>chỉ số (index)</b>. Vì bạn đầu hàng không có ai đứng trước nên chỉ số là 0. Máy đếm từ 0 không phải vì kỳ lạ, mà vì nó đếm "đã đi qua bao nhiêu".<br><b>Hai quy tắc dùng ngay:</b> (1) vị trí thứ k (đếm thường ngày) có chỉ số <b>k - 1</b>; (2) hàng có n bạn thì bạn cuối có chỉ số <b>n - 1</b> (không phải n).<br><b>Mẹo kiểm tra:</b> hàng 5 bạn thì các chỉ số là 0, 1, 2, 3, 4. Nếu bạn viết ra chỉ số 5 thì đã vượt quá hàng.`;
 

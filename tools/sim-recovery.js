@@ -10,7 +10,7 @@ const root = path.join(__dirname, '..') + '/';
 const html = fs.readFileSync(root + 'index.html', 'utf8').replace(/<link[^>]*>/g, '').replace(/<script src="[^"]*"><\/script>/g, '');
 const w = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/' }).window; w.setTimeout = f => { f(); return 0 };
 for (const f of [...fs.readFileSync(root + 'index.html', 'utf8').matchAll(/<script src="([^"]+)"/g)].map(m => m[1])) { const el = w.document.createElement('script'); el.textContent = fs.readFileSync(root + f, 'utf8'); w.document.body.appendChild(el) }
-w.eval('window.__x={LES,PRB,P,STAGES,ids,unlocked,probe,notebook,road,hub,TINY,tinyFor,tinyCheck}');
+w.eval('window.__x={LES,PRB,P,STAGES,ids,unlocked,probe,notebook,road,hub,TINY,TINY_FOR,tinyFor,tinyCheck,pyRef}');
 const X = w.__x, $ = s => w.document.querySelector(s), $$ = s => [...w.document.querySelectorAll(s)];
 let bad = 0; const ok = (c, m) => { if (!c) { bad++; console.log('FAIL:', m) } };
 const txt = h => { const d = w.document.createElement('div'); d.innerHTML = h; return d.textContent };
@@ -118,6 +118,13 @@ X.notebook('k3', () => { }, 'Quay lại');
 ok(/Mental model/.test($('#panel').textContent) && /Ví dụ ngược/.test($('#panel').textContent), 'NB: k3 phải render dạng mini-textbook');
 ok(/Cách tự kiểm tra/.test($('#panel').textContent) && /Quy tắc dùng ngay/.test($('#panel').textContent), 'NB: k3 phải có quy tắc + tự kiểm tra');
 ok($('[data-nb2]'), 'NB: k3 phải có link về bài nền / concept liên quan');
+
+// --- Config integrity: mọi id trong TINY_FOR / pyRef / nbk links phải tồn tại trong LES ---
+// (regression guard: từng xóa nhầm vì grep bỏ sót object NEW trong app.js)
+for (const id of Object.keys(X.TINY_FOR)) ok(X.LES[id], 'TINY_FOR.' + id + ' phải tồn tại trong LES');
+ok(X.tinyFor('a2') === 'k3' && X.tinyFor('a3') === 'k3' && X.tinyFor('bs') === 'k3', 'tinyFor(a2/a3/bs) phải về bank k3, không được null');
+ok(X.LES.k3.nbk.links.every(l => X.LES[l]), 'mọi link trong nbk k3 phải tồn tại trong LES');
+ok(X.pyRef('sm') !== 'sm' && X.LES[X.pyRef('sm')], 'pyRef(sm) phải về bài Python gần nhất, không được trả về chính nó');
 
 // --- rd1 đủ sâu: >= 13 bước (10 cũ + 5 mới: input/output, động từ, đối tượng, edge case) ---
 ok(X.LES.rd1.steps.length >= 13, 'rd1 phải có >= 13 bước, hiện là ' + X.LES.rd1.steps.length);
