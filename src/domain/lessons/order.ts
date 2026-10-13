@@ -135,7 +135,17 @@ export const STAGES: StageWithQBank[] = [
     ]
   },
   {
-    "n": "Giai đoạn 5: Tìm kiếm và sắp xếp",
+    "n": "Giai đoạn 5: Đệ quy",
+    "d": "Bài nhỏ hơn giống hệt bài lớn",
+    "L": [
+      "r1",
+      "r2",
+      "r3",
+      "w8"
+    ]
+  },
+  {
+    "n": "Giai đoạn 6: Tìm kiếm và sắp xếp",
     "d": "Chia đôi mỗi lần",
     "L": [
       "bs",
@@ -143,16 +153,6 @@ export const STAGES: StageWithQBank[] = [
       "bo",
       "mrg",
       "qck"
-    ]
-  },
-  {
-    "n": "Giai đoạn 6: Đệ quy",
-    "d": "Bài nhỏ hơn giống hệt bài lớn",
-    "L": [
-      "r1",
-      "r2",
-      "r3",
-      "w8"
     ]
   },
   {
@@ -200,5 +200,5 @@ export const STAGES: StageWithQBank[] = [
   }
 ];
 
-/** Thứ tự 77 bài học — derive từ STAGES để không bao giờ lệch */
+/** Thứ tự 82 bài học — derive từ STAGES để không bao giờ lệch */
 export const LESSON_ORDER: string[] = STAGES.flatMap((s) => s.L);

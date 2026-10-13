@@ -16,10 +16,15 @@ export function validateTests(tests: string): string | null {
   if (asserts.length < 3) {
     return 'Cần ít nhất 3 dòng assert (bỏ dấu # đầu dòng và viết thêm).';
   }
-  if (!/\[\]|None/.test(tests)) {
+  // Bỏ phần comment (# ...) để chữ [] / None / ___ nằm trong comment không đánh lừa cổng chặn.
+  const code = tests
+    .split('\n')
+    .map((l) => l.replace(/#.*$/, ''))
+    .join('\n');
+  if (!/\[\]|None/.test(code)) {
     return 'Chưa có test ca biên (danh sách rỗng hoặc đầu vào None). Dân chuyên nghiệp luôn test biên.';
   }
-  if (/___/.test(tests)) {
+  if (/___/.test(code)) {
     return 'Còn chỗ ___ chưa điền. Hãy thay bằng giá trị bạn nghĩ là đúng.';
   }
   return null;

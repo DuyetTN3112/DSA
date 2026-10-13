@@ -21,7 +21,9 @@ const boRead1: ProbeGenerator = () => tChoice('A: O(n), B: O(n²). n = 10 thì B
 const mrgSame: ProbeGenerator = () => tChoice('Trộn [1, 4] và [2, 3] (đã sắp xếp). Số đầu tiên lấy ra là mấy?', ['1', '2', '4'], 'So đầu hai mảng: 1 < 2 nên lấy 1.');
 const mrgFlip: ProbeGenerator = () => {
   const sa = xSort([randRange(1, 5), randRange(6, 9)]);
-  const sb = xSort([randRange(1, 5), randRange(6, 9)]);
+  let sb = xSort([randRange(1, 5), randRange(6, 9)]);
+  // Hai đầu mảng bằng nhau thì 2 lựa chọn trùng nhau ("5" và "5"): sinh lại cho tới khi khác.
+  while (sb[0] === sa[0]) sb = xSort([randRange(1, 5), randRange(6, 9)]);
   const lo = Math.min(sa[0] ?? 0, sb[0] ?? 0);
   const hi = Math.max(sa[0] ?? 0, sb[0] ?? 0);
   return tChoice(`Trộn [${sa.join(',')}] và [${sb.join(',')}] (đã sắp xếp). Số đầu tiên lấy ra là mấy?`, [String(lo), String(hi)], 'So hai đầu, lấy số nhỏ hơn.');

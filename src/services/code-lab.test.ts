@@ -35,6 +35,14 @@ describe('validateTests', () => {
     const t = 'assert f([]) == ___\nassert f([1]) == 1\nassert f(None) == None';
     expect(validateTests(t)).toContain('___');
   });
+  it('không để chữ [] / None trong comment đánh lừa cổng ca biên', () => {
+    const t = '# ca biên: [] None\nassert f([1]) == 1\nassert f([1]) == 1\nassert f([1]) == 1';
+    expect(validateTests(t)).toContain('ca biên');
+  });
+  it('không để ___ trong comment chặn nhầm', () => {
+    const t = '# điền ___ vào chỗ trống\nassert f([]) == 0\nassert f([1]) == 1\nassert f(None) == 0';
+    expect(validateTests(t)).toBeNull();
+  });
   it('đạt khi đủ 3 assert + ca biên', () => {
     const t = 'assert f([]) == 0\nassert f([1]) == 1\nassert f(None) == 0';
     expect(validateTests(t)).toBeNull();
