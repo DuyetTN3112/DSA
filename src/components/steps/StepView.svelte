@@ -16,20 +16,22 @@
     step: LessonStep;
     lesson: Lesson;
     /** mảng minh họa của bài (cho click/open/tap); rỗng nếu bài không có */
-    values: number[];
+    values: (string | number)[];
+    /** false khi bước/bài ẩn chỉ số dưới hộp (noidx) */
+    showIndex?: boolean;
     onAnswer: (correct: boolean) => void;
   }
-  const { step, lesson, values, onAnswer }: Props = $props();
+  const { step, lesson, values, showIndex = true, onAnswer }: Props = $props();
 </script>
 
 {#if step.k === 'click'}
-  <ClickStep {step} {values} {onAnswer} />
+  <ClickStep {step} {values} {showIndex} {onAnswer} />
 {:else if step.k === 'input'}
   <InputStep {step} {onAnswer} />
 {:else if step.k === 'choice'}
   <ChoiceStep {step} {onAnswer} />
 {:else if step.k === 'open'}
-  <OpenStep {step} {values} {onAnswer} />
+  <OpenStep {step} {values} {showIndex} {onAnswer} />
 {:else if step.k === 'tap'}
   <TapStep {step} {values} {onAnswer} />
 {:else if step.k === 'order'}

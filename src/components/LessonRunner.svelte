@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Lesson, LessonStep } from '../domain/types';
+  import ArrayView from './steps/ArrayView.svelte';
   import StepView from './steps/StepView.svelte';
 
   // Chạy một bài học: tự quản lý stepIndex bằng runes.
@@ -23,9 +24,23 @@
   let log = $state<string[]>([]);
 
   const step: LessonStep | undefined = $derived(lesson.steps[stepIndex]);
-  const values: number[] = $derived(lesson.arr ?? []);
+  // Mảng minh hoạ: ưu tiên mảng riêng của bước (vd 🍎 ở bài k1), không có thì dùng mảng của bài.
+  const values: (string | number)[] = $derived.by(() => {
+    const st = step;
+    if (st !== undefined && 'arr' in st) return st.arr;
+    return lesson.arr ?? [];
+  });
+  const showIndex = $derived(!(step !== undefined && 'noidx' in step && step.noidx === 1));
+  const highlight = $derived(step !== undefined && 'hi' in step ? step.hi : undefined);
+  // click/open/tap tự vẽ hộp có tương tác bên trong component của bước;
+  // các bước khác (choice, input...) chỉ cần xem mảng nên vẽ ở đây.
   const needsBoxes = $derived(
     step?.k === 'click' || step?.k === 'open' || step?.k === 'tap',
+  );
+  // code/tests tự vẽ đề + nhãn pha; order tự vẽ nhãn pha. Các bước còn lại do runner vẽ.
+  const showBrief = $derived(step !== undefined && step.k !== 'code' && step.k !== 'tests');
+  const showPhase = $derived(
+    step !== undefined && step.k !== 'code' && step.k !== 'tests' && step.k !== 'order',
   );
 
   function resetStepState(): void {
@@ -85,7 +100,24 @@
 
 {#if step}
   {#key stepIndex}
-    <StepView {step} {lesson} values={needsBoxes ? values : []} onAnswer={handleAnswer} />
+    {#if showBrief && lesson.brief}<p class="sub"><b>Đề:</b> {@html lesson.brief}</p>{/if}
+    {#if !needsBoxes && values.length > 0 && step.k !== 'code' && step.k !== 'tests'}
+      <ArrayView
+        {values}
+        opened={values.map(() => true)}
+        clickable={false}
+        {highlight}
+        {showIndex}
+      />
+    {/if}
+    {#if showPhase && step.ph}<p class="ph">{step.ph}</p>{/if}
+    <StepView
+      {step}
+      {lesson}
+      values={needsBoxes ? values : []}
+      {showIndex}
+      onAnswer={handleAnswer}
+    />
   {/key}
 
   {#if feedback}
