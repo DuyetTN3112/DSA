@@ -52,7 +52,10 @@
     <input
       type="number"
       aria-label="Câu trả lời"
-      bind:value={inputVal}
+      value={inputVal}
+      oninput={(e) => {
+        inputVal = e.currentTarget.value;
+      }}
       onkeydown={(e) => {
         if (e.key === 'Enter') submitInput();
       }}
