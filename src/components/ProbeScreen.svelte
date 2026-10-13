@@ -82,6 +82,9 @@
     {shapeLabel}. Làm đúng bài vừa học chưa chắc là hiểu, nên mình đổi số, đổi
     chiều, đổi bối cảnh.
   </p>
+  <!-- Phải thấy câu hỏi rồi mới tự đánh giá được mức chắc chắn (bản vanilla cũ cũng vậy);
+       các lựa chọn/ô nhập đáp án vẫn ẩn cho tới khi đã chọn mức chắc chắn. -->
+  {#if q}<div class="q">{@html q.q}</div>{/if}
   <p class="sub">Trước khi trả lời: bạn chắc đến mức nào?</p>
   <div class="opts">
     <button onclick={() => { flow.pickConfidence(3); }}>Chắc chắn</button>
