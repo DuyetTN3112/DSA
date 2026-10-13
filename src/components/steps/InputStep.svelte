@@ -24,7 +24,10 @@
   type="number"
   inputmode="numeric"
   aria-label="Câu trả lời"
-  bind:value={val}
+  value={val}
+  oninput={(e) => {
+    val = e.currentTarget.value;
+  }}
   onkeydown={(e) => {
     if (e.key === 'Enter') submit();
   }}
