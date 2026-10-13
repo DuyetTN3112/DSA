@@ -1,6 +1,6 @@
 // Adapter: nối dữ liệu domain thật vào DomainPorts mà flows cần.
-// - lessons: LESSON_MAP (77 bài)
-// - probeBanks: PROBE_BANKS (76 banks; rd1 không có bank — đúng behavior bản cũ)
+// - lessons: LESSON_MAP (82 bài)
+// - probeBanks: PROBE_BANKS (81 banks; rd1 không có bank — đúng behavior bản cũ)
 // - tinyBanks: mỗi bank name -> hàm trả về toàn bộ câu hỏi (flow tự shuffle/lấy 3)
 // - tinyFor: (id, stuckKind?) => bank name | null (quy tắc 'de' -> 'rd1' nằm ở đây)
 // - stages: STAGES (single source of truth)

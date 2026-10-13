@@ -15,7 +15,7 @@ export type { Stage };
 import { PREQ } from './probe/prereq';
 export { PREQ };
 
-/** Toàn bộ id bài học theo đúng thứ tự lộ trình (77 bài, gồm rd1) */
+/** Toàn bộ id bài học theo đúng thứ tự lộ trình (82 bài, gồm rd1) */
 export const ALL_IDS: string[] = STAGES.flatMap((s) => s.L);
 
 /** Mọi bài tiền đề (trực tiếp + gián tiếp) của một bài */

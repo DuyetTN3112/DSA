@@ -69,8 +69,13 @@
     else setDraftCode(lesson.id, text);
   }
 
+  let advancing = false;
+
   function done(msg: string): void {
     output = msg;
+    // Chống bấm "Chạy test" lại trong 1,6s chờ: nếu không, onAnswer(true) bị gọi 2 lần và nhảy cóc 1 bước.
+    if (advancing) return;
+    advancing = true;
     globalThis.setTimeout(() => {
       onAnswer(true);
     }, 1600);
