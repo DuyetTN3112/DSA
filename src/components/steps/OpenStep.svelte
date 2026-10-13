@@ -6,10 +6,11 @@
   // Mở sai thì hộp cứ mở ra (không phạt); mở đúng hộp thì qua.
   interface Props {
     step: OpenStepData;
-    values: number[];
+    values: (string | number)[];
+    showIndex?: boolean;
     onAnswer: (correct: boolean) => void;
   }
-  const { step, values, onAnswer }: Props = $props();
+  const { step, values, showIndex = true, onAnswer }: Props = $props();
   // indices đã mở; opened suy ra từ đó. Component được remount mỗi bước
   // (StepView bọc {#key}) nên không cần reset khi values đổi.
   let picked = $state<number[]>([]);
@@ -22,5 +23,5 @@
   }
 </script>
 
+<ArrayView values={values} opened={opened} clickable={true} {showIndex} onPick={pick} />
 <div class="q">{@html step.q}</div>
-<ArrayView values={values} opened={opened} clickable={true} onPick={pick} />
